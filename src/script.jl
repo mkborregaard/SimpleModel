@@ -1,7 +1,7 @@
 using Plots
 using GLMakie
 using Rasters
-using JLSO
+using JLD2
 
 include("objects.jl")
 include("plotting.jl")
@@ -18,14 +18,14 @@ save_figures = false
 datadir = "/Users/cvg147/Library/CloudStorage/Dropbox/Arbejde/Data"
 #datadir = "C:\\Users\\cvg147\\Dropbox\\Arbejde\\Data"
 obj = try
-    JLSO.load(joinpath(datadir, "processed_objects.jls"))
+    JLD2.load(joinpath(datadir, "processed_objects.jls"))
 catch
     include("prepare_data.jl")
     obj = prepare_data(datadir, doplots = true)
 end
 
-spec = obj[:spec] # see the "objects.jl" file for an explanation of these two objects
-env = obj[:env]
+spec = obj["spec"] # see the "objects.jl" file for an explanation of these two objects
+env = obj["env"]
 
 ###--- Exploratory data analysis
 
