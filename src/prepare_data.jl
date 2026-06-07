@@ -125,6 +125,6 @@ function prepare_data(datadir; doplots = false)
     env = Environment(pca1, pca2, pca_maps, sa_mask, inds, bbox, chull)
     spec = Species(allranges, allspecies)
     obj = Dict(:spec => spec, :env => env)
-    JLD2.save(joinpath(datadir, "processed_objects.jls"), obj)
+    JLD2.save(joinpath(datadir, "processed_objects.jld2"), obj)
     obj
 end

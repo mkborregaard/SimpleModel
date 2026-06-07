@@ -50,7 +50,7 @@ function plot_species(speciesnames, spec::Species, env::Environment)
     a = Axis(f[1,1], aspect = DataAspect())
     b = Axis(f[1,2], aspect = DataAspect())
     Makie.plot!(a, env.mask, colormap = "Greys")
-    Makie.scatter!(b, collect(zip(env.pca1, env.pca2)); markersize = 0.1, color=(:grey, 0.5))
+    Makie.scatter!(b, collect(zip(env.pca1, env.pca2)); markersize = 1, color=(:grey, 0.5))
     colsize!(f.layout, 1, Auto(0.73))
     rich = fill(NaN, dims(env.mask))
 
@@ -58,7 +58,7 @@ function plot_species(speciesnames, spec::Species, env::Environment)
         species_mask = spec.ranges[At(species)]
         rich[species_mask] .= i
         Makie.scatter!(b, env.pca_maps.pca1[species_mask], env.pca_maps.pca2[species_mask]; 
-            markersize = 0.2, label = species,
+            markersize = 2, label = species,
             colormap=(:tab10, 0.5), color=i, colorrange=(1, 10)
         )
     end
