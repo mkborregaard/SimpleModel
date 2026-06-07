@@ -133,7 +133,7 @@ save_figures && savefig("figures/empirical_ellipse_and_empirical_pca_richness.pn
 
   
 # Create random ellipses with the empirical areas
-rand_ellipses = [sample_ellipse(harea, env; on_real_point = true) for harea in ares]
+rand_ellipses = [sample_ellipse(harea; env, on_real_point = true) for harea in ares]
 
 # Show 50 random ellipses
 p = Plots.scatter(env.pca1, env.pca2, mc = :grey, ms = 1, msw = 0, aspect_ratio = 1, label = "")

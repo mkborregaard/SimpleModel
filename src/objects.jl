@@ -16,6 +16,6 @@ struct Species{R <: RasterSeries}
     names::Vector{String}                   # names to index into the ranges
 end
 
-function Base.display(IO, e::Environment)
-    println("Environment with $(length(e.pca1)) sites on a $(size(e.mask, 1))x$(size(e.mask, 2)) domain")
+function Base.show(io::IO, e::Environment)
+    println(io, "Environment with $(length(e.pca1)) sites on a $(size(e.mask, 1))x$(size(e.mask, 2)) domain")
 end

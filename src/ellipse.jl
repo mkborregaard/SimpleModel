@@ -2,7 +2,7 @@ using Random
 using RecipesBase
 using Statistics
 using LinearAlgebra
-import StatsBase
+using StatsBase: weights, fit, Histogram
 import GeometryBasics
 
 # A basic Ellipse struct
@@ -26,7 +26,7 @@ end
 
 in_ellipse(point, el::Ellipse) = distance(point, el) <= 1
 
-rescale(x, min_x, max_x) = (max_x - min_x)*x + min_x
+rescale(x, lo, hi) = clamp(muladd(x, hi - lo, lo), lo, hi)
 
 import GeometryBasics
 function GeometryBasics.coordinates(el::Ellipse, nvertices = 100)

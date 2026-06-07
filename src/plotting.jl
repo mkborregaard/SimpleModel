@@ -58,7 +58,7 @@ function plot_species(speciesnames, spec::Species, env::Environment)
         species_mask = spec.ranges[At(species)]
         rich[species_mask] .= i
         Makie.scatter!(b, env.pca_maps.pca1[species_mask], env.pca_maps.pca2[species_mask]; 
-            markersize = 0.2, label = spec,
+            markersize = 0.2, label = species,
             colormap=(:tab10, 0.5), color=i, colorrange=(1, 10)
         )
     end

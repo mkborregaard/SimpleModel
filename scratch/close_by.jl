@@ -12,7 +12,7 @@ end
 
 function plot_var(var, env)
     Plots.scatter(env.pca1, env.pca2, c = :black,  msw = 0, ms = 0.8, legend = false)
-    Plots.scatter!(env.pca1[var], env.pca2[a], c = :red,  msw = 0, ms = 2)
+    Plots.scatter!(env.pca1[var], env.pca2[var], c = :red,  msw = 0, ms = 2)
 end
 
 plot_gc(rand(gridcell))

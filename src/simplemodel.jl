@@ -64,10 +64,10 @@ function geocentroids(name, spec::Species)
     mean(first, dp), mean(last, dp)
 end
 
-# divide a vector into quartiles
+# divide a vector into n quantile bins (returns 1:n)
 function asquantile(vec, n)
-    q = quantile(vec, (0:n-1)./n)
-    [findlast(<(r), q) for r in vec]
+    q = quantile(vec, (1:n-1)./n)
+    [searchsortedlast(q, r) + 1 for r in vec]
 end
 
 function overlap(el::Ellipse, polygon; n = 100)
@@ -99,7 +99,7 @@ function pick_ellipse_center(env::Environment; on_real_point = false)
     rescale(rand(), first(env.bbox)...), rescale(rand(), last(env.bbox)...)
 end
 
-function sample_ellipse(harea = 1, env::Environment = env; max_iter = 1000, on_real_point = false)
+function sample_ellipse(harea = 1; env::Environment, max_iter = 1000, on_real_point = false)
     el = Ellipse(0,0,0,0,0)
     harea == 0 && return el
     ovrlp = 0
