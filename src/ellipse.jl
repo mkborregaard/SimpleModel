@@ -20,7 +20,7 @@ function distance(point::Tuple, el::Ellipse)
     rel_x = first(point) - el.center_x
     rel_y = last(point) - el.center_y
     a = (cosa * rel_x + sina * rel_y)^2 / el.length^2
-    b = (sina * rel_x + cosa * rel_y)^2 / el.width^2
+    b = (-sina * rel_x + cosa * rel_y)^2 / el.width^2
     a+b
 end
 

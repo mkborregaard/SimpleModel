@@ -14,8 +14,8 @@ save_figures = false
 ###--- First we load all the data into two objects. This takes a while if first time, 
 # so we us
 
-#datadir = "/Users/Michael/Library/CloudStorage/Dropbox/Arbejde/Data"
-datadir = "/Users/cvg147/Library/CloudStorage/Dropbox/Arbejde/Data"
+datadir = "/Users/cvg147/Dropbox/Arbejde/Data"
+#datadir = "/Users/cvg147/Library/CloudStorage/Dropbox/Arbejde/Data"
 #datadir = "C:\\Users\\cvg147\\Dropbox\\Arbejde\\Data"
 obj = try
     JLD2.load(joinpath(datadir, "processed_objects.jld2"))
@@ -259,8 +259,7 @@ ct = pr2 .- minimum(pr2, dims = 1)
 ct ./= maximum(ct)
 ct .+= 0.5 .* (1 .- maximum(ct, dims = 1))
 
-ct = pr2
-cols = [RGB(sl'...) for sl in eachcol(ct)]
+cols = [RGB(sl...) for sl in eachrow(ct)]
 Plots.scatter(env.inds, color = cols, msw = 0, ms = 2, aspect_ratio = 1, yflip = 
 true, size = (800, 1100), legend = false)
 
