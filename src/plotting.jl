@@ -46,7 +46,7 @@ end
 # Creates two side-by-side plots, one in geographic space, the other in climate space
 # Shows the occurrence points of all the species defined by speciesnames
 function plot_species(speciesnames, spec::Species, env::Environment)
-    f = Figure(resolution = (1500, 700))
+    f = Figure(size = (1500, 700))
     a = Axis(f[1,1], aspect = DataAspect())
     b = Axis(f[1,2], aspect = DataAspect())
     Makie.plot!(a, env.mask, colormap = "Greys")
@@ -103,8 +103,8 @@ end
 
 function plot_ellipse_patches(myel::Int, spec::Species, env::Environment, elsize = 2)
     Plots.plot(
-        Plots.heatmap(first(env.pca_maps), title = "temp"),
-        Plots.heatmap(last(env.pca_maps), title = "precip"),
+        Plots.heatmap(env.pca_maps.pca1, title = "temp"),
+        Plots.heatmap(env.pca_maps.pca2, title = "precip"),
         Plots.plot(spec.ranges[myel], title = "actual range"),
         plot_species_pca(spec.names[myel], spec, env, elsize; weightmap), 
         Plots.plot(map_ellipse(emp_ellipses[myel], env), title = "full ellipse range"),

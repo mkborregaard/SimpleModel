@@ -68,7 +68,7 @@ GeometryBasics.area(el::Ellipse) = el.length * el.width * π
 function StatsBase.fit(::Type{Ellipse}, xs, ys, sigma = 2; weight = ones(length(xs)))
     evals, evecs = eigen(cov([xs ys], weights(weight)))
     a, b = sigma .* sqrt.(evals)
-    angle = atan(evecs[2,1] / evecs[1,1])
+    angle = atan(evecs[2,1], evecs[1,1])
     Ellipse(mean(xs, weights(weight)), mean(ys, weights(weight)), a, b, angle)
 end
 

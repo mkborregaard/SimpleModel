@@ -9,6 +9,7 @@ using Shapefile
 using ConcaveHull
 using StatsBase
 using LinearAlgebra
+using JLD2
 
 include("objects.jl")
 include("plotting.jl")
@@ -26,7 +27,7 @@ function vmax(A::AbstractMatrix{TA}; gamma = 1.0, minit = 20, maxit = 1000,
     L,_,M = svd(A' * (d*B.^3 - gamma*B * Diagonal(sum(B.^2, dims = 1)[:])))
     T = L * M'
     if norm(T - Matrix{TA}(I, m, m)) < reltol
-        T,_ = qr(randn(m,m)).QT
+        T = Matrix(qr(randn(m, m)).Q)
         B = A * T
     end
 
