@@ -111,7 +111,13 @@ p = Plots.plot([
 , size = (1200, 1200))
 save_figures && savefig(p, "figures/16 species controlling for point density.png")
 
-# fit elliptical niches for all species
+# Compare point-trust / quality-control techniques for one species (see TrustMethod).
+# Drop in new `struct MyQC <: TrustMethod` + `trust(::MyQC, xs, ys; weight)` to add more.
+trustmethods = [TrustAll(), MCDTrim(keep = 0.9), ChisqFilter(p = 0.95), DensityTrim(keep = 0.9)]
+compare_trust_methods(rand(spec.names), spec, env, trustmethods)
+save_figures && savefig("figures/trust_methods.png")
+
+# fit elliptical niches for all species (default method = MCDTrim(); swap to compare)
 emp_ellipses = [fitellipse(name, spec, env, 1.5) for name in spec.names]
 
 # show patterns of ellipse area

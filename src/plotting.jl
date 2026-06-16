@@ -91,14 +91,30 @@ function overplot_geo_space(points, col, env::Environment)
     f
 end
 
-function plot_species_pca(speciesname, spec::Species, env::Environment, sigma = 2; weightmap = nothing)
-    xs, ys = get_climate(speciesname, spec, env)
+# Plot a species' occurrences in climate space, coloured by whether the chosen `method`
+# trusts them (red) or discards them as likely false presences (black x), with the fitted
+# niche ellipse. Swap `method` to see how different quality-control techniques behave.
+function plot_species_pca(speciesname, spec::Species, env::Environment, sigma = 2;
+        weightmap = nothing, method = MCDTrim(), cover = 1.0)
+    xs, ys, t = species_trust(speciesname, spec, env; weightmap, method)
     length(xs) < 2 && return(Plots.scatter(env.pca1, env.pca2, ms = 1, mc = :grey, msw = 0, label = "", title = speciesname, aspect_ratio = 1))
-    el = fit(Ellipse, xs, ys, sigma; weight = !isnothing(weightmap) ? weightmap[spec.ranges[At(speciesname)]] : ones(length(xs)))
-    p = Plots.scatter(env.pca1, env.pca2, ms = 1, mc = :grey, msw = 0, label = "", title = speciesname, aspect_ratio = 1)
-    Plots.scatter!(p, xs, ys, ms = 2, mc = :red, msw = 0, label = "occurrences")
+    el = fitellipse(speciesname, spec, env, sigma; weightmap, method, cover)
+    kept = t .> 0
+    p = Plots.scatter(env.pca1, env.pca2, ms = 1, mc = :grey, msw = 0, label = "",
+        title = "$speciesname  ($(nameof(typeof(method))))", aspect_ratio = 1)
+    Plots.scatter!(p, xs[.!kept], ys[.!kept], ms = 2.5, mc = :black, msw = 0, marker = :x, label = "discarded")
+    Plots.scatter!(p, xs[kept], ys[kept], ms = 2, mc = :red, msw = 0, label = "trusted")
     Plots.plot!(p, el, color = :blue, lw = 1, label = "niche")
     p
+end
+
+# Lay out the same species under several trust methods side by side for comparison.
+function compare_trust_methods(speciesname, spec::Species, env::Environment, methods;
+        weightmap = nothing, sigma = 2, cover = 1.0)
+    Plots.plot(
+        [plot_species_pca(speciesname, spec, env, sigma; weightmap, method = m, cover) for m in methods]...,
+        layout = (1, length(methods)), size = (450 * length(methods), 450), legend = false
+    )
 end
 
 function plot_ellipse_patches(myel::Int, spec::Species, env::Environment, elsize = 2)
