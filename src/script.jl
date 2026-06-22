@@ -1,7 +1,7 @@
 using Plots
 using GLMakie
 using Rasters
-using JLSO
+using JLD2
 
 include("objects.jl")
 include("plotting.jl")
@@ -14,18 +14,18 @@ save_figures = false
 ###--- First we load all the data into two objects. This takes a while if first time, 
 # so we us
 
-#datadir = "/Users/Michael/Library/CloudStorage/Dropbox/Arbejde/Data"
-datadir = "/Users/cvg147/Library/CloudStorage/Dropbox/Arbejde/Data"
+datadir = "/Users/cvg147/Dropbox/Arbejde/Data"
+#datadir = "/Users/cvg147/Library/CloudStorage/Dropbox/Arbejde/Data"
 #datadir = "C:\\Users\\cvg147\\Dropbox\\Arbejde\\Data"
 obj = try
-    JLSO.load(joinpath(datadir, "processed_objects.jls"))
+    JLD2.load(joinpath(datadir, "processed_objects.jld2"))
 catch
     include("prepare_data.jl")
     obj = prepare_data(datadir, doplots = true)
 end
 
-spec = obj[:spec] # see the "objects.jl" file for an explanation of these two objects
-env = obj[:env]
+spec = obj["spec"] # see the "objects.jl" file for an explanation of these two objects
+env = obj["env"]
 
 ###--- Exploratory data analysis
 
@@ -37,7 +37,7 @@ save_figures && savefig("figures/empirical_richness.png")
 
 # Plot the diversity in climate space
 f = Figure()
-a, s = GLMakie.scatter(f[1,1], collect(zip(env.pca1, env.pca2)); markersize = 0.1, color = diversity[env.mask], colormap = cgrad(:Spectral, rev = true))
+a, s = GLMakie.scatter(f[1,1], collect(zip(env.pca1, env.pca2)); markersize = 1, color = diversity[env.mask], colormap = cgrad(:Spectral, rev = true))
 Colorbar(f[1,2],s)
 display(f)
 
@@ -111,7 +111,13 @@ p = Plots.plot([
 , size = (1200, 1200))
 save_figures && savefig(p, "figures/16 species controlling for point density.png")
 
-# fit elliptical niches for all species
+# Compare point-trust / quality-control techniques for one species (see TrustMethod).
+# Drop in new `struct MyQC <: TrustMethod` + `trust(::MyQC, xs, ys; weight)` to add more.
+trustmethods = [TrustAll(), MCDTrim(keep = 0.9), ChisqFilter(p = 0.95), DensityTrim(keep = 0.9)]
+compare_trust_methods(rand(spec.names), spec, env, trustmethods)
+save_figures && savefig("figures/trust_methods.png")
+
+# fit elliptical niches for all species (default method = MCDTrim(); swap to compare)
 emp_ellipses = [fitellipse(name, spec, env, 1.5) for name in spec.names]
 
 # show patterns of ellipse area
@@ -133,7 +139,7 @@ save_figures && savefig("figures/empirical_ellipse_and_empirical_pca_richness.pn
 
   
 # Create random ellipses with the empirical areas
-rand_ellipses = [sample_ellipse(harea, env; on_real_point = true) for harea in ares]
+rand_ellipses = [sample_ellipse(harea; env, on_real_point = true) for harea in ares]
 
 # Show 50 random ellipses
 p = Plots.scatter(env.pca1, env.pca2, mc = :grey, ms = 1, msw = 0, aspect_ratio = 1, label = "")
@@ -259,8 +265,7 @@ ct = pr2 .- minimum(pr2, dims = 1)
 ct ./= maximum(ct)
 ct .+= 0.5 .* (1 .- maximum(ct, dims = 1))
 
-ct = pr2
-cols = [RGB(sl'...) for sl in eachcol(ct)]
+cols = [RGB(sl...) for sl in eachrow(ct)]
 Plots.scatter(env.inds, color = cols, msw = 0, ms = 2, aspect_ratio = 1, yflip = 
 true, size = (800, 1100), legend = false)
 

@@ -9,6 +9,7 @@ using Shapefile
 using ConcaveHull
 using StatsBase
 using LinearAlgebra
+using JLD2
 
 include("objects.jl")
 include("plotting.jl")
@@ -26,7 +27,7 @@ function vmax(A::AbstractMatrix{TA}; gamma = 1.0, minit = 20, maxit = 1000,
     L,_,M = svd(A' * (d*B.^3 - gamma*B * Diagonal(sum(B.^2, dims = 1)[:])))
     T = L * M'
     if norm(T - Matrix{TA}(I, m, m)) < reltol
-        T,_ = qr(randn(m,m)).QT
+        T = Matrix(qr(randn(m, m)).Q)
         B = A * T
     end
 
@@ -124,7 +125,7 @@ function prepare_data(datadir; doplots = false)
     
     env = Environment(pca1, pca2, pca_maps, sa_mask, inds, bbox, chull)
     spec = Species(allranges, allspecies)
-    obj = (:spec => spec, :env => env)
-    JLSO.save(joinpath(datadir, "processed_objects.jls"), obj...)
-    Dict(obj)
+    obj = Dict(:spec => spec, :env => env)
+    JLD2.save(joinpath(datadir, "processed_objects.jld2"), obj)
+    obj
 end

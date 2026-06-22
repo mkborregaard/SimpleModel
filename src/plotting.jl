@@ -46,11 +46,11 @@ end
 # Creates two side-by-side plots, one in geographic space, the other in climate space
 # Shows the occurrence points of all the species defined by speciesnames
 function plot_species(speciesnames, spec::Species, env::Environment)
-    f = Figure(resolution = (1500, 700))
+    f = Figure(size = (1500, 700))
     a = Axis(f[1,1], aspect = DataAspect())
     b = Axis(f[1,2], aspect = DataAspect())
     Makie.plot!(a, env.mask, colormap = "Greys")
-    Makie.scatter!(b, collect(zip(env.pca1, env.pca2)); markersize = 0.1, color=(:grey, 0.5))
+    Makie.scatter!(b, collect(zip(env.pca1, env.pca2)); markersize = 1, color=(:grey, 0.5))
     colsize!(f.layout, 1, Auto(0.73))
     rich = fill(NaN, dims(env.mask))
 
@@ -58,7 +58,7 @@ function plot_species(speciesnames, spec::Species, env::Environment)
         species_mask = spec.ranges[At(species)]
         rich[species_mask] .= i
         Makie.scatter!(b, env.pca_maps.pca1[species_mask], env.pca_maps.pca2[species_mask]; 
-            markersize = 0.2, label = spec,
+            markersize = 2, label = species,
             colormap=(:tab10, 0.5), color=i, colorrange=(1, 10)
         )
     end
@@ -91,20 +91,36 @@ function overplot_geo_space(points, col, env::Environment)
     f
 end
 
-function plot_species_pca(speciesname, spec::Species, env::Environment, sigma = 2; weightmap = nothing)
-    xs, ys = get_climate(speciesname, spec, env)
+# Plot a species' occurrences in climate space, coloured by whether the chosen `method`
+# trusts them (red) or discards them as likely false presences (black x), with the fitted
+# niche ellipse. Swap `method` to see how different quality-control techniques behave.
+function plot_species_pca(speciesname, spec::Species, env::Environment, sigma = 2;
+        weightmap = nothing, method = MCDTrim(), cover = 1.0)
+    xs, ys, t = species_trust(speciesname, spec, env; weightmap, method)
     length(xs) < 2 && return(Plots.scatter(env.pca1, env.pca2, ms = 1, mc = :grey, msw = 0, label = "", title = speciesname, aspect_ratio = 1))
-    el = fit(Ellipse, xs, ys, sigma; weight = !isnothing(weightmap) ? weightmap[spec.ranges[At(speciesname)]] : ones(length(xs)))
-    p = Plots.scatter(env.pca1, env.pca2, ms = 1, mc = :grey, msw = 0, label = "", title = speciesname, aspect_ratio = 1)
-    Plots.scatter!(p, xs, ys, ms = 2, mc = :red, msw = 0, label = "occurrences")
+    el = fitellipse(speciesname, spec, env, sigma; weightmap, method, cover)
+    kept = t .> 0
+    p = Plots.scatter(env.pca1, env.pca2, ms = 1, mc = :grey, msw = 0, label = "",
+        title = "$speciesname  ($(nameof(typeof(method))))", aspect_ratio = 1)
+    Plots.scatter!(p, xs[.!kept], ys[.!kept], ms = 2.5, mc = :black, msw = 0, marker = :x, label = "discarded")
+    Plots.scatter!(p, xs[kept], ys[kept], ms = 2, mc = :red, msw = 0, label = "trusted")
     Plots.plot!(p, el, color = :blue, lw = 1, label = "niche")
     p
 end
 
+# Lay out the same species under several trust methods side by side for comparison.
+function compare_trust_methods(speciesname, spec::Species, env::Environment, methods;
+        weightmap = nothing, sigma = 2, cover = 1.0)
+    Plots.plot(
+        [plot_species_pca(speciesname, spec, env, sigma; weightmap, method = m, cover) for m in methods]...,
+        layout = (1, length(methods)), size = (450 * length(methods), 450), legend = false
+    )
+end
+
 function plot_ellipse_patches(myel::Int, spec::Species, env::Environment, elsize = 2)
     Plots.plot(
-        Plots.heatmap(first(env.pca_maps), title = "temp"),
-        Plots.heatmap(last(env.pca_maps), title = "precip"),
+        Plots.heatmap(env.pca_maps.pca1, title = "temp"),
+        Plots.heatmap(env.pca_maps.pca2, title = "precip"),
         Plots.plot(spec.ranges[myel], title = "actual range"),
         plot_species_pca(spec.names[myel], spec, env, elsize; weightmap), 
         Plots.plot(map_ellipse(emp_ellipses[myel], env), title = "full ellipse range"),

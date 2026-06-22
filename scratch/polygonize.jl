@@ -24,7 +24,7 @@ end
 res = map(abs ∘ step, centers)
 min_viable_area = 20 # Maybe this is really small? # MKB: Actually a lot of the ranges are really really small
 too_small_removed = filter(polygons) do polygon
-    count(boolmask(polygon; res)) > min_pixels
+    count(boolmask(polygon; res)) > min_viable_area
 end 
 Rasters.rplot(els)
 Makie.poly!(too_small_removed)
