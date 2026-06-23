@@ -2,7 +2,8 @@ using Random
 using RecipesBase
 using Statistics
 using LinearAlgebra
-using StatsBase: weights, fit, Histogram
+using StatsBase: weights, Histogram
+import StatsBase: fit          # imported for extension (the Ellipse method below)
 import GeometryBasics
 
 # A basic Ellipse struct
@@ -36,7 +37,7 @@ function GeometryBasics.coordinates(el::Ellipse, nvertices = 100)
     ys = [ys; reverse(-ys)[2:end]; first(ys)]
     x_ret = xs .* cos.(el.angle) - ys .* sin.(el.angle)
     y_ret = xs .* sin.(el.angle) + ys .* cos.(el.angle)
-    Point2.(zip(x_ret .+ el.center_x, y_ret .+ el.center_y))
+    GeometryBasics.Point2.(zip(x_ret .+ el.center_x, y_ret .+ el.center_y))
 end
 
 RecipesBase.@recipe f(el::Ellipse; nvertices = 100) = GeometryBasics.coordinates(el, nvertices)
@@ -154,7 +155,7 @@ end
 # (weighted) points, then size the boundary. With `cover` a fraction the boundary encloses
 # that trust-weighted quantile of the points' Mahalanobis radii (cover = 1.0 -> all trusted
 # points inside); with `cover === nothing` it sits at `sigma` core standard deviations.
-function StatsBase.fit(::Type{Ellipse}, xs, ys, sigma = 2; weight = ones(length(xs)),
+function fit(::Type{Ellipse}, xs, ys, sigma = 2; weight = ones(length(xs)),
         method::TrustMethod = MCDTrim(), cover = 1.0)
     t = trust(method, xs, ys; weight)
     shape = shapefit(xs, ys, weight .* t)

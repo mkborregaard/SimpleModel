@@ -2,7 +2,7 @@
 
 julia_version = "1.13.0-rc1"
 manifest_format = "2.1"
-project_hash = "ec387f20b94c594af756d8e46b98a3d7aed6c896"
+project_hash = "ad8d77e3ba3475266cd151c68fa9e6fae8c54ffe"
 
 [[deps.ASCIIrasters]]
 git-tree-sha1 = "1880b17ca0e1c0edd3fa8a968fca20516af7436a"
@@ -152,13 +152,6 @@ registries = "General"
 uuid = "18cc8868-cbac-4acf-b575-c8ff214dc66f"
 version = "1.3.2"
 
-[[deps.BenchmarkTools]]
-deps = ["Compat", "JSON", "Logging", "PrecompileTools", "Printf", "Profile", "Statistics", "UUIDs"]
-git-tree-sha1 = "9670d3febc2b6da60a0ae57846ba74670290653f"
-registries = "General"
-uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-version = "1.8.0"
-
 [[deps.BitFlags]]
 git-tree-sha1 = "bbe1079eecf9c9fbb52765193ad2bae27ae09bc8"
 registries = "General"
@@ -216,6 +209,12 @@ git-tree-sha1 = "1fa950ebc3e37eccd51c6a8fe1f92f7d86263522"
 registries = "General"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.18.7+0"
+
+[[deps.Chain]]
+git-tree-sha1 = "765487f32aeece2cf28aa7038e29c31060cb5a69"
+registries = "General"
+uuid = "8be319e6-bccf-4806-a6f7-6fae938471bc"
+version = "1.0.0"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra"]
@@ -414,6 +413,13 @@ registries = "General"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 version = "1.8.2"
 
+[[deps.DataFramesMeta]]
+deps = ["Chain", "DataFrames", "MacroTools", "OrderedCollections", "PrettyTables", "Reexport", "TableMetadataTools"]
+git-tree-sha1 = "b0652fb7f3c094cf453bf22e699712a0bed9fc83"
+registries = "General"
+uuid = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
+version = "0.15.6"
+
 [[deps.DataStructures]]
 deps = ["OrderedCollections"]
 git-tree-sha1 = "6fb53a69613a0b2b68a0d12671717d307ab8b24e"
@@ -548,6 +554,13 @@ git-tree-sha1 = "e3290f2d49e661fbd94046d7e3726ffcb2d41053"
 registries = "General"
 uuid = "5ae413db-bbd1-5e63-b57d-d24a61df00f5"
 version = "2.2.4+0"
+
+[[deps.EcoBase]]
+deps = ["RecipesBase"]
+git-tree-sha1 = "20586d0522cd889300152a7dacc8c5d6d1d44c2b"
+registries = "General"
+uuid = "a58aae7d-b440-5a11-b283-399458f99aac"
+version = "0.1.7"
 
 [[deps.EnumX]]
 git-tree-sha1 = "c49898e8438c828577f04b92fc9368c388ac783c"
@@ -1895,11 +1908,6 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 version = "1.11.0"
 
-[[deps.Profile]]
-deps = ["StyledStrings"]
-uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
-version = "1.11.0"
-
 [[deps.ProgressMeter]]
 deps = ["Distributed", "Printf"]
 git-tree-sha1 = "fbb92c6c56b34e1a2c4c36058f68f332bec840e7"
@@ -1984,6 +1992,20 @@ version = "1.11.0"
 deps = ["SHA"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 version = "1.11.0"
+
+[[deps.RandomBooleanMatrices]]
+deps = ["Random", "RandomNumbers", "SparseArrays", "StatsBase"]
+git-tree-sha1 = "eaa54cab9bcacd73a99d3412c0e6cad71bf90f72"
+registries = "General"
+uuid = "9ae346a0-3d16-5633-ad70-ddb60ab77eac"
+version = "0.1.2"
+
+[[deps.RandomNumbers]]
+deps = ["Random"]
+git-tree-sha1 = "c6ec94d2aaba1ab2ff983052cf6a606ca5985902"
+registries = "General"
+uuid = "e6cf234a-135c-5ec9-84dd-332b85af5143"
+version = "1.6.0"
 
 [[deps.RangeArrays]]
 git-tree-sha1 = "b9039e93773ddcfc828f12aadf7115b4b4d225f5"
@@ -2230,6 +2252,17 @@ deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 version = "1.13.0"
 
+[[deps.SpatialEcology]]
+deps = ["DataFrames", "DataFramesMeta", "Distances", "EcoBase", "Random", "RandomBooleanMatrices", "RandomNumbers", "RecipesBase", "SparseArrays", "Statistics", "StatsBase"]
+git-tree-sha1 = "4dba385698a94152f0cd6b4d0f90f188aafa9e9c"
+registries = "General"
+uuid = "348f2d5d-71a3-5ad4-b565-8af070f99681"
+version = "0.10.0"
+weakdeps = ["Rasters"]
+
+    [deps.SpatialEcology.extensions]
+    RastersExt = "Rasters"
+
 [[deps.SpecialFunctions]]
 deps = ["IrrationalConstants", "LogExpFunctions", "OpenLibm_jll", "OpenSpecFun_jll"]
 git-tree-sha1 = "6547cbdd8ce32efba0d21c5a40fa96d1a3548f9f"
@@ -2386,6 +2419,13 @@ version = "7.10.1+0"
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 version = "1.0.3"
+
+[[deps.TableMetadataTools]]
+deps = ["DataAPI", "Dates", "TOML", "Tables", "Unitful"]
+git-tree-sha1 = "c0405d3f8189bb9a9755e429c6ea2138fca7e31f"
+registries = "General"
+uuid = "9ce81f87-eacc-4366-bf80-b621a3098ee2"
+version = "0.1.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
