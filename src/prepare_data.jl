@@ -1,3 +1,10 @@
+# Build the model's data object: a raster-backed SpatialEcology `Assemblage` of
+# South American birds, carrying the two environmental PCA axes as site
+# statistics. The heavy lifting of turning per-species rasters + a domain mask
+# into an aligned species-by-sites object is done by SpatialEcology's
+# `Assemblage(::RasterSeries, mask)` constructor — what used to be the bespoke
+# `Environment` / `Species` assembly code here.
+
 using Rasters
 using RasterDataSources
 using ArchGDAL
@@ -6,15 +13,10 @@ using DataFrames
 using GeoInterface; const GI = GeoInterface
 using Extents
 using Shapefile
-using ConcaveHull
 using StatsBase
 using LinearAlgebra
 using JLD2
-
-include("objects.jl")
-include("plotting.jl")
-
-# Let's load the environment data
+using SpatialEcology
 
 # Find the right rotation for the PCA - copied from factorloadingmatrices (varimax)
 function vmax(A::AbstractMatrix{TA}; gamma = 1.0, minit = 20, maxit = 1000,
@@ -54,10 +56,12 @@ function prepare_environment(datadir)
     Rasters.aggregate(mean, replace_missing(bioclim_sa, NaN), 20)
 end
 
-# Fit a PCA model to the climate and extract the two primary components
-function do_pca(bioclim_sa, sa_mask; naxes = 2)
-    big_mat = permutedims(reduce(hcat, maplayers(A->zscore(A[sa_mask]), bioclim_sa)))
-    # histogram(big_mat'; bins=20, ticks=false, label=false, title=(1:19)')
+# Fit a PCA model to the climate and extract the two primary components, one
+# value per site of `asm` (in site order, via the assemblage's cell indices).
+function do_pca(bioclim_sa, asm; naxes = 2)
+    ci = cellindices(asm)
+    bc = permutedims(bioclim_sa, (X, Y))                 # canonical order, as the sites
+    big_mat = permutedims(reduce(hcat, maplayers(A -> zscore(A[ci]), bc)))
     model = fit(PCA, big_mat; maxoutdim = naxes)
     pred = MultivariateStats.transform(model, big_mat)
     vm = vmax(loadings(model))
@@ -66,7 +70,6 @@ function do_pca(bioclim_sa, sa_mask; naxes = 2)
 end
 
 # Load the bird shapefiles and pick the ones in South America
-
 function loadranges(data::String, batches::Int, mask, datadir)
     shapefiles = [joinpath(datadir, data, "batch_$i.shp") for i in 1:batches]
     reduce(vcat, map(shapefiles) do sf
@@ -86,46 +89,31 @@ function get_speciesmask(name, geoms, mask)
     rebuild(ret; name = name)
 end
 
-
 function prepare_data(datadir; doplots = false)
     ## Get the environmental data
     bioclim_sa = prepare_environment(datadir)
     sa_mask = boolmask(bioclim_sa.bio15)
 
-    # and visualize
     doplots && Plots.plot(bioclim_sa.bio1)
 
     # log transform the precipitation layers
     for prec in 12:19
         lay = Symbol("bio$prec")
         bioclim_sa[lay][sa_mask] .= log.(bioclim_sa[lay][sa_mask] .+ 1)
-    end  
+    end
 
-    ## get the PCA
-    pcamat, loads = do_pca(bioclim_sa, sa_mask)
-    pca1, pca2 = pcamat[:,1], pcamat[:,2]
-    doplots && biplot(pca1, pca2, loads, string.(names(bioclim_sa)))
-
-    # and convert the results to raster
-    pca_maps = RasterStack((pca1=do_map(pca1, sa_mask), pca2=do_map(pca2, sa_mask)))
-
-    # and visualize
-    doplots && Plots.plot(pca_maps)
-
-    # Get the bird data (this takes time)
+    ## Get the bird data (this takes time) and build the assemblage
     sa_geoms = loadranges("Birds", 5, sa_mask, datadir)
-    # names of all species
     allspecies = collect(skipmissing(unique(sa_geoms.sci_name)))
     allranges = RasterSeries([get_speciesmask(name, sa_geoms, sa_mask) for name in allspecies], (; name = allspecies))
-    inds = collect(Iterators.product(1:size(sa_mask, 1), 1:size(sa_mask, 2)))[sa_mask]
-    
-    bbox = (extrema(pca1), extrema(pca2))
-    cc = concave_hull(ConcaveHull.KDTree(vcat(pca1', pca2'), reorder = false), 40)
-    chull = GI.Polygon([GI.LinearRing([cc.vertices; [first(cc.vertices)]])])
-    
-    env = Environment(pca1, pca2, pca_maps, sa_mask, inds, bbox, chull)
-    spec = Species(allranges, allspecies)
-    obj = Dict(:spec => spec, :env => env)
-    JLD2.save(joinpath(datadir, "processed_objects.jld2"), obj)
-    obj
+    asm = Assemblage(allranges, sa_mask)
+
+    ## Attach the two environmental PCA axes as site statistics
+    pcamat, loads = do_pca(bioclim_sa, asm)
+    addsitestats!(asm, pcamat[:, 1], :pca1)
+    addsitestats!(asm, pcamat[:, 2], :pca2)
+    doplots && biplot(asm[!, :pca1], asm[!, :pca2], loads, string.(names(bioclim_sa)))
+
+    JLD2.save(joinpath(datadir, "processed_assemblage.jld2"), "asm", asm)
+    asm
 end
