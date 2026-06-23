@@ -23,6 +23,7 @@ datadir = "/Users/cvg147/Dropbox/Arbejde/Data"
 asm = try
     JLD2.load(joinpath(datadir, "processed_assemblage.jld2"))["asm"]
 catch
+    println("No cache found, preparing datasets")
     include("prepare_data.jl")
     prepare_data(datadir, doplots = true)
 end

@@ -1,9 +1,6 @@
 # Build the model's data object: a raster-backed SpatialEcology `Assemblage` of
 # South American birds, carrying the two environmental PCA axes as site
-# statistics. The heavy lifting of turning per-species rasters + a domain mask
-# into an aligned species-by-sites object is done by SpatialEcology's
-# `Assemblage(::RasterSeries, mask)` constructor — what used to be the bespoke
-# `Environment` / `Species` assembly code here.
+# statistics. 
 
 using Rasters
 using RasterDataSources
@@ -93,7 +90,6 @@ function prepare_data(datadir; doplots = false)
     ## Get the environmental data
     bioclim_sa = prepare_environment(datadir)
     sa_mask = boolmask(bioclim_sa.bio15)
-
     doplots && Plots.plot(bioclim_sa.bio1)
 
     # log transform the precipitation layers
