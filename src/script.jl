@@ -190,11 +190,12 @@ rand_emp_rangesize = vec(count.(model_ranges))
 Plots.scatter(rangesizes, rand_emp_rangesize)
 Plots.plot!(identity, 0, 6e4, color = :black, lw = 2)
 
+Plots.default()
+
 # what's the relationship between ellipse size and actual range?
 emp_els_area = GeometryBasics.area.(emp_ellipses)
 Plots.scatter(rangesizes, emp_els_area)
 
-Plots.default()
 
 # How much of its niche does a species actually occupy?
 function occup_in_ellipse(el::Ellipse, asm, sp)
@@ -245,6 +246,7 @@ ct .+= 0.5 .* (1 .- maximum(ct, dims = 1))
 
 cols = [RGB(sl...) for sl in eachrow(ct)]
 Plots.scatter(Tuple.(cellindices(asm)), color = cols, msw = 0, ms = 2, aspect_ratio = 1, yflip = true, size = (800, 1100), legend = false)
+save_figures && savefig("figures/rgb_3dclimate_map.png")
 
 Plots.scatter(pca1, pca2, color = cols, msw = 0, ms = 1, aspect_ratio = 1, size = (600, 600), legend = false)
 save_figures && savefig("figures/climate_colors2.png")
